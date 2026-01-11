@@ -195,26 +195,30 @@ window.Components.accountManager = () => ({
         
         if (validIds.length === 0) return { percent: null, model: '-' };
 
+        const DEAD_THRESHOLD = 0.01;
+        
+        const MODEL_TIERS = [
+            { pattern: /\bopus\b/, aliveScore: 100, deadScore: 60 },
+            { pattern: /\bsonnet\b/, aliveScore: 90, deadScore: 55 },
+            // Gemini 3 Pro / Ultra
+            { pattern: /\bgemini-3\b/, extraCheck: (l) => /\bpro\b/.test(l) || /\bultra\b/.test(l), aliveScore: 80, deadScore: 50 },
+            { pattern: /\bpro\b/, aliveScore: 75, deadScore: 45 },
+            // Mid/Low Tier
+            { pattern: /\bhaiku\b/, aliveScore: 30, deadScore: 15 },
+            { pattern: /\bflash\b/, aliveScore: 20, deadScore: 10 }
+        ];
+
         const getPriority = (id) => {
             const lower = id.toLowerCase();
             const val = getQuotaVal(id);
-            const isAlive = val > 0.01; // Treat < 1% as dead for priority purposes
+            const isAlive = val > DEAD_THRESHOLD;
             
-            // Hierarchy: 
-            // 1. High Tier (Alive)
-            // 2. High Tier (Dead) - to warn user
-            // 3. Low Tier (Alive) - fallback
-            // 4. Low Tier (Dead)
-            
-            if (/\bopus\b/.test(lower)) return isAlive ? 100 : 60;
-            if (/\bsonnet\b/.test(lower)) return isAlive ? 90 : 55;
-            // Gemini 3 Pro / Ultra
-            if (/\bgemini-3\b/.test(lower) && (/\bpro\b/.test(lower) || /\bultra\b/.test(lower))) return isAlive ? 80 : 50;
-            if (/\bpro\b/.test(lower)) return isAlive ? 75 : 45; // Other Pro models
-            
-            // Mid/Low Tier
-            if (/\bhaiku\b/.test(lower)) return isAlive ? 30 : 15;
-            if (/\bflash\b/.test(lower)) return isAlive ? 20 : 10;
+            for (const tier of MODEL_TIERS) {
+                if (tier.pattern.test(lower)) {
+                    if (tier.extraCheck && !tier.extraCheck(lower)) continue;
+                    return isAlive ? tier.aliveScore : tier.deadScore;
+                }
+            }
             
             return isAlive ? 5 : 0;
         };
