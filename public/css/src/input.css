@@ -492,9 +492,9 @@
 
 /* Desktop Sidebar Collapsed State */
 @media (min-width: 1024px) {
-  .sidebar-collapsed {
-    width: 0 !important;
-    padding: 0 !important;
-    border: none !important;
+  body .sidebar-collapsed {
+    width: 0;
+    padding: 0;
+    border: none;
   }
 }
