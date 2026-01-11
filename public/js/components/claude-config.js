@@ -61,7 +61,7 @@ window.Components.claudeConfig = () => ({
             // Fix: Case-insensitive check for gemini
             if (val && /gemini/i.test(val)) {
                 if (enabled && !val.includes('[1m]')) {
-                    this.config.env[field] = val.trim() + ' [1m]';
+                    this.config.env[field] = val.trim() + '[1m]';
                 } else if (!enabled && val.includes('[1m]')) {
                     this.config.env[field] = val.replace(/\s*\[1m\]$/i, '').trim();
                 }
@@ -82,7 +82,7 @@ window.Components.claudeConfig = () => ({
         // If 1M mode is enabled and it's a Gemini model, append the suffix
         if (this.gemini1mSuffix && modelId.toLowerCase().includes('gemini')) {
             if (!finalModelId.includes('[1m]')) {
-                finalModelId = finalModelId.trim() + ' [1m]';
+                finalModelId = finalModelId.trim() + '[1m]';
             }
         }
 
