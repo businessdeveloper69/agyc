@@ -3,9 +3,10 @@
  * Entry point - starts the proxy server
  */
 
-import app from './server.js';
+import app, { accountManager } from './server.js';
 import { DEFAULT_PORT } from './constants.js';
 import { logger } from './utils/logger.js';
+import { getStrategyLabel, STRATEGY_NAMES, DEFAULT_STRATEGY } from './account-manager/strategies/index.js';
 import path from 'path';
 import os from 'os';
 
@@ -13,6 +14,21 @@ import os from 'os';
 const args = process.argv.slice(2);
 const isDebug = args.includes('--debug') || process.env.DEBUG === 'true';
 const isFallbackEnabled = args.includes('--fallback') || process.env.FALLBACK === 'true';
+
+// Parse --strategy flag (format: --strategy=sticky or --strategy sticky)
+let strategyOverride = null;
+for (let i = 0; i < args.length; i++) {
+    if (args[i].startsWith('--strategy=')) {
+        strategyOverride = args[i].split('=')[1];
+    } else if (args[i] === '--strategy' && args[i + 1]) {
+        strategyOverride = args[i + 1];
+    }
+}
+// Validate strategy
+if (strategyOverride && !STRATEGY_NAMES.includes(strategyOverride.toLowerCase())) {
+    logger.warn(`[Startup] Invalid strategy "${strategyOverride}". Valid options: ${STRATEGY_NAMES.join(', ')}. Using default.`);
+    strategyOverride = null;
+}
 
 // Initialize logger
 logger.setDebug(isDebug);
@@ -45,6 +61,7 @@ const server = app.listen(PORT, () => {
     
     // Build Control section dynamically
     let controlSection = '║  Control:                                                    ║\n';
+    controlSection += '║    --strategy=<s>     Set selection strategy (sticky/hybrid) ║\n';
     if (!isDebug) {
         controlSection += '║    --debug            Enable debug logging                   ║\n';
     }
@@ -53,17 +70,18 @@ const server = app.listen(PORT, () => {
     }
     controlSection += '║    Ctrl+C             Stop server                            ║';
 
-    // Build status section if any modes are active
-    let statusSection = '';
-    if (isDebug || isFallbackEnabled) {
-        statusSection = '║                                                              ║\n';
-        statusSection += '║  Active Modes:                                               ║\n';
-        if (isDebug) {
-            statusSection += '║    ✓ Debug mode enabled                                      ║\n';
-        }
-        if (isFallbackEnabled) {
-            statusSection += '║    ✓ Model fallback enabled                                  ║\n';
-        }
+    // Get the strategy label (accountManager will be initialized by now)
+    const strategyLabel = accountManager.getStrategyLabel();
+
+    // Build status section - always show strategy, plus any active modes
+    let statusSection = '║                                                              ║\n';
+    statusSection += '║  Active Modes:                                               ║\n';
+    statusSection += `${border}    ${align4(`✓ Strategy: ${strategyLabel}`)}${border}\n`;
+    if (isDebug) {
+        statusSection += '║    ✓ Debug mode enabled                                      ║\n';
+    }
+    if (isFallbackEnabled) {
+        statusSection += '║    ✓ Model fallback enabled                                  ║\n';
     }
 
     logger.log(`

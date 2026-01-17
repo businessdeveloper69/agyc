@@ -26,13 +26,23 @@ import usageStats from './modules/usage-stats.js';
 const args = process.argv.slice(2);
 const FALLBACK_ENABLED = args.includes('--fallback') || process.env.FALLBACK === 'true';
 
+// Parse --strategy flag (format: --strategy=sticky or --strategy sticky)
+let STRATEGY_OVERRIDE = null;
+for (let i = 0; i < args.length; i++) {
+    if (args[i].startsWith('--strategy=')) {
+        STRATEGY_OVERRIDE = args[i].split('=')[1];
+    } else if (args[i] === '--strategy' && args[i + 1]) {
+        STRATEGY_OVERRIDE = args[i + 1];
+    }
+}
+
 const app = express();
 
 // Disable x-powered-by header for security
 app.disable('x-powered-by');
 
 // Initialize account manager (will be fully initialized on first request or startup)
-const accountManager = new AccountManager();
+export const accountManager = new AccountManager();
 
 // Track initialization status
 let isInitialized = false;
@@ -50,7 +60,7 @@ async function ensureInitialized() {
 
     initPromise = (async () => {
         try {
-            await accountManager.initialize();
+            await accountManager.initialize(STRATEGY_OVERRIDE);
             isInitialized = true;
             const status = accountManager.getStatus();
             logger.success(`[Server] Account pool initialized: ${status.summary}`);

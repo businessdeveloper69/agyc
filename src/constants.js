@@ -103,8 +103,23 @@ export const MAX_ACCOUNTS = config?.maxAccounts || 10; // From config or 10
 // Rate limit wait thresholds
 export const MAX_WAIT_BEFORE_ERROR_MS = config?.maxWaitBeforeErrorMs || 120000; // From config or 2 minutes
 
+// Gap 1: Retry deduplication - prevents thundering herd on concurrent rate limits
+export const RATE_LIMIT_DEDUP_WINDOW_MS = config?.rateLimitDedupWindowMs || 5000; // 5 seconds
+
+// Gap 2: Consecutive failure tracking - extended cooldown after repeated failures
+export const MAX_CONSECUTIVE_FAILURES = config?.maxConsecutiveFailures || 3;
+export const EXTENDED_COOLDOWN_MS = config?.extendedCooldownMs || 60000; // 1 minute
+
+// Gap 4: Capacity exhaustion - shorter retry for model capacity issues (not quota)
+export const CAPACITY_RETRY_DELAY_MS = config?.capacityRetryDelayMs || 2000; // 2 seconds
+export const MAX_CAPACITY_RETRIES = config?.maxCapacityRetries || 3;
+
 // Thinking model constants
 export const MIN_SIGNATURE_LENGTH = 50; // Minimum valid thinking signature length
+
+// Account selection strategies
+export const SELECTION_STRATEGIES = ['sticky', 'round-robin', 'hybrid'];
+export const DEFAULT_SELECTION_STRATEGY = 'hybrid';
 
 // Gemini-specific limits
 export const GEMINI_MAX_OUTPUT_TOKENS = 16384;
@@ -235,6 +250,11 @@ export default {
     MAX_EMPTY_RESPONSE_RETRIES,
     MAX_ACCOUNTS,
     MAX_WAIT_BEFORE_ERROR_MS,
+    RATE_LIMIT_DEDUP_WINDOW_MS,
+    MAX_CONSECUTIVE_FAILURES,
+    EXTENDED_COOLDOWN_MS,
+    CAPACITY_RETRY_DELAY_MS,
+    MAX_CAPACITY_RETRIES,
     MIN_SIGNATURE_LENGTH,
     GEMINI_MAX_OUTPUT_TOKENS,
     GEMINI_SKIP_SIGNATURE,
