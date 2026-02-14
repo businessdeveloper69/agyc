@@ -111,7 +111,7 @@ I am requesting a review of a service disablement on my account related to `clou
 **Observed error**
 - `403 PERMISSION_DENIED`
 - Message: `"This service has been disabled in this account for violation of Terms of Service."`
-- First observed: `<timestamp UTC>`
+- First observed: `<timestamp UTC in ISO 8601, e.g. 2026-02-14T20:10:05Z>`
 
 **What happened (technical summary)**
 - I used OAuth-authenticated requests from custom tooling that proxied traffic to the above endpoints.
