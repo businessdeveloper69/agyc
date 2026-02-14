@@ -207,8 +207,9 @@ export async function* sendMessageStream(anthropicRequest, accountManager, fallb
                             // on the SAME account. Switching accounts for short waits (e.g., 3.5s)
                             // causes rapid account rotation which may trigger abuse detection (issue #277)
                             if (resetMs !== null && resetMs < DEFAULT_COOLDOWN_MS) {
-                                logger.info(`[CloudCode] Short rate limit on ${account.email} (${formatDuration(resetMs)}), waiting and retrying...`);
-                                await sleep(resetMs);
+                                const waitMs = resetMs;
+                                logger.info(`[CloudCode] Short rate limit on ${account.email} (${formatDuration(waitMs)}), waiting and retrying...`);
+                                await sleep(waitMs);
                                 // Don't increment endpointIndex - retry same endpoint
                                 continue;
                             }
