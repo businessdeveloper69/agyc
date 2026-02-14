@@ -19,14 +19,16 @@ import { deriveSessionId } from './session-manager.js';
  *
  * @param {Object} anthropicRequest - The Anthropic-format request
  * @param {string} projectId - The project ID to use
+ * @param {string} [accountEmail] - Account email to scope session ID per-account (prevents cross-account correlation, issue #277)
  * @returns {Object} The Cloud Code API request payload
  */
-export function buildCloudCodeRequest(anthropicRequest, projectId) {
+export function buildCloudCodeRequest(anthropicRequest, projectId, accountEmail = '') {
     const model = anthropicRequest.model;
     const googleRequest = convertAnthropicToGoogle(anthropicRequest);
 
-    // Use stable session ID derived from first user message for cache continuity
-    googleRequest.sessionId = deriveSessionId(anthropicRequest);
+    // Use stable session ID derived from first user message + account email for cache continuity
+    // Account email is included so different accounts get different session IDs (issue #277)
+    googleRequest.sessionId = deriveSessionId(anthropicRequest, accountEmail);
 
     // Build system instruction parts array with [ignore] tags to prevent model from
     // identifying as "Antigravity" (fixes GitHub issue #76)
