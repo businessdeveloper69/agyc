@@ -13,10 +13,16 @@ import crypto from 'crypto';
  * This ensures the same conversation uses the same session ID across turns,
  * enabling prompt caching (cache is scoped to session + organization).
  *
+ * The account email is included in the hash so that different accounts produce
+ * different session IDs for the same conversation. This prevents Google from
+ * seeing identical session identifiers across multiple accounts, which could
+ * be flagged as abuse / ToS violation (see GitHub issue #277).
+ *
  * @param {Object} anthropicRequest - The Anthropic-format request
+ * @param {string} [accountEmail] - Account email to scope session ID per-account
  * @returns {string} A stable session ID (32 hex characters) or random UUID if no user message
  */
-export function deriveSessionId(anthropicRequest) {
+export function deriveSessionId(anthropicRequest, accountEmail = '') {
     const messages = anthropicRequest.messages || [];
 
     // Find the first user message
@@ -35,8 +41,9 @@ export function deriveSessionId(anthropicRequest) {
             }
 
             if (content) {
-                // Hash the content with SHA256, return first 32 hex chars
-                const hash = crypto.createHash('sha256').update(content).digest('hex');
+                // Include account email in hash so each account gets a unique session ID
+                const hashInput = accountEmail ? `${accountEmail}:${content}` : content;
+                const hash = crypto.createHash('sha256').update(hashInput).digest('hex');
                 return hash.substring(0, 32);
             }
         }

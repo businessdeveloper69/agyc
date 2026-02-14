@@ -139,7 +139,7 @@ export async function* sendMessageStream(anthropicRequest, accountManager, fallb
             // Get token and project for this account
             const token = await accountManager.getTokenForAccount(account);
             const project = await accountManager.getProjectForAccount(account, token);
-            const payload = buildCloudCodeRequest(anthropicRequest, project);
+            const payload = buildCloudCodeRequest(anthropicRequest, project, account.email);
 
             logger.debug(`[CloudCode] Starting stream for model: ${model}`);
 
@@ -203,11 +203,12 @@ export async function* sendMessageStream(anthropicRequest, accountManager, fallb
                             // Get rate limit backoff with exponential backoff and state reset
                             const backoff = getRateLimitBackoff(account.email, model, resetMs);
 
-                            // For very short rate limits (< 1 second), always wait and retry
-                            // Switching accounts won't help when all accounts have per-second rate limits
-                            if (resetMs !== null && resetMs < 1000) {
+                            // For short rate limits (server says retry soon), always wait and retry
+                            // on the SAME account. Switching accounts for short waits (e.g., 3.5s)
+                            // causes rapid account rotation which may trigger abuse detection (issue #277)
+                            if (resetMs !== null && resetMs < DEFAULT_COOLDOWN_MS) {
                                 const waitMs = resetMs;
-                                logger.info(`[CloudCode] Short rate limit on ${account.email} (${resetMs}ms), waiting and retrying...`);
+                                logger.info(`[CloudCode] Short rate limit on ${account.email} (${formatDuration(waitMs)}), waiting and retrying...`);
                                 await sleep(waitMs);
                                 // Don't increment endpointIndex - retry same endpoint
                                 continue;

@@ -103,6 +103,10 @@ export function isPermanentAuthFailure(errorText) {
  * These are account-level errors that should trigger account rotation,
  * not just endpoint rotation. The account needs validation (e.g., captcha,
  * terms acceptance) which cannot be resolved by trying different endpoints.
+ *
+ * Also detects ToS violation bans where the account has been permanently
+ * disabled (see GitHub issue #277).
+ *
  * @param {string} errorText - Error message from API
  * @returns {boolean} True if validation/permission error requiring account rotation
  */
@@ -110,7 +114,9 @@ export function isValidationRequired(errorText) {
     const lower = (errorText || '').toLowerCase();
     return lower.includes('validation_required') ||
         lower.includes('account_disabled') ||
-        lower.includes('user_disabled');
+        lower.includes('user_disabled') ||
+        lower.includes('has been disabled') ||
+        lower.includes('violation of terms');
 }
 
 /**
