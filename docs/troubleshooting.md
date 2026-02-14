@@ -8,6 +8,7 @@
 - [Rate Limiting (429)](#rate-limiting-429)
 - [Account Shows as "Invalid"](#account-shows-as-invalid)
 - [403 Permission Denied / VALIDATION_REQUIRED](#403-permission-denied--validation_required)
+- [403 ToS Disablement (PERMISSION_DENIED)](#403-tos-disablement-permission_denied)
 
 ---
 
@@ -143,3 +144,21 @@ All accounts are invalid: Account requires verification. Visit the WebUI to fix 
 ```
 
 > **Note:** Verification errors persist across server restarts until resolved. Auth errors (token revoked/expired) are reset on restart and require OAuth re-authentication via the FIX button.
+
+## 403 ToS Disablement (PERMISSION_DENIED)
+
+If Google returns:
+
+```
+This service has been disabled in this account for violation of Terms of Service.
+```
+
+this is an account-level enforcement event, not a normal token-expiry issue.
+
+- Stop using the affected proxy flow immediately.
+- Do not retry at higher volume or rotate through more accounts.
+- Collect sanitized logs and submit a factual reinstatement request.
+
+For a full technical assessment (threat model, compliant path, controlled testing plan, and appeal template), see:
+
+- [OAuth Enforcement & Compliance Assessment](./oauth-compliance-assessment.md)
