@@ -16,6 +16,14 @@ on `cloudcode-pa.googleapis.com` or `daily-cloudcode-pa.googleapis.com`.
 
 It does **not** provide bypass guidance. It focuses on root-cause analysis, risk reduction, and compliant architecture.
 
+## Executive Summary (for Proposal to Google)
+
+- We observed a consistent `403 PERMISSION_DENIED` ToS-disable response on Cloud Code IDE endpoints while OAuth token refresh still succeeded.
+- The most probable root cause is authorization-context mismatch: IDE-scoped credentials were replayed through proxy/headless automation outside intended client boundaries.
+- High-volume multi-account automation appears structurally detectable through client-level and behavioral correlation, with low long-term success probability.
+- Recommended path is compliance-first: disable non-compliant relays, preserve sanitized evidence, and request explicit guidance or reinstatement through support.
+- For sustainable usage, migrate to officially documented programmatic APIs/tiers and enforce guardrails (per-account/day caps, anomaly monitoring, automatic stop on ToS signals).
+
 ## 1) Threat Model Analysis
 
 - **Primary Detection Vector:** OAuth token/client usage outside intended product context (IDE-scoped usage replayed through proxy/headless automation).
