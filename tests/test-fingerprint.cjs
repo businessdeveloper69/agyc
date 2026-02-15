@@ -94,7 +94,7 @@ async function runTests() {
         assertNotNull(fp.version, 'version should be set');
         assertNotNull(fp.apiClient, 'apiClient should be set');
         assertNotNull(fp.requestType, 'requestType should be set');
-        assertNotNull(fp.requestIdPrefix !== undefined, 'requestIdPrefix should be defined');
+        assertTrue(fp.requestIdPrefix !== undefined, 'requestIdPrefix should be defined');
     });
 
     test('getInstanceFingerprint: version is from valid range', () => {
