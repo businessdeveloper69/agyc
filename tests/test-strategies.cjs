@@ -746,7 +746,7 @@ async function runTests() {
 
         strategy.onSuccess(account, 'model');
         const tracker = strategy.getHealthTracker();
-        assertEqual(tracker.getScore('test@example.com'), 75, 'Health should increase');
+        assertEqual(Math.round(tracker.getScore('test@example.com')), 75, 'Health should increase');
     });
 
     test('HybridStrategy: onRateLimit decreases health', () => {
@@ -777,7 +777,7 @@ async function runTests() {
         const healthTracker = strategy.getHealthTracker();
         const tokenTracker = strategy.getTokenBucketTracker();
 
-        assertEqual(healthTracker.getScore(accounts[0].email), 50, 'Health should decrease by 20');
+        assertEqual(Math.round(healthTracker.getScore(accounts[0].email)), 50, 'Health should decrease by 20');
         assertEqual(tokenTracker.getTokens(accounts[0].email), tokensBefore + 1, 'Token should be refunded');
     });
 

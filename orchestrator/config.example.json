@@ -1,0 +1,60 @@
+{
+  "server": {
+    "host": "127.0.0.1",
+    "port": 8088
+  },
+  "dispatcher": {
+    "routing": "round-robin",
+    "globalQueueSize": 200,
+    "perAccountQueueSize": 50,
+    "taskTimeoutSeconds": 600,
+    "healthCheckIntervalSeconds": 10
+  },
+  "accounts": [
+    {
+      "id": "acc01",
+      "stateDir": "/tmp/agyc-orchestrator/accounts/acc01",
+      "env": {
+        "AG_CONFIG_DIR": "/tmp/agyc-orchestrator/accounts/acc01"
+      },
+      "startCommand": ["bash", "-lc", "sleep infinity"],
+      "healthCommand": ["bash", "-lc", "test -d \"$AG_CONFIG_DIR\""],
+      "taskCommand": [
+        "python",
+        "-c",
+        "import json,sys; req=json.load(sys.stdin); txt=req['messages'][-1].get('content',''); print(json.dumps({'content': txt, 'account_id': req.get('account_id')}))"
+      ],
+      "maxConcurrency": 2
+    },
+    {
+      "id": "acc02",
+      "stateDir": "/tmp/agyc-orchestrator/accounts/acc02",
+      "env": {
+        "AG_CONFIG_DIR": "/tmp/agyc-orchestrator/accounts/acc02"
+      },
+      "startCommand": ["bash", "-lc", "sleep infinity"],
+      "healthCommand": ["bash", "-lc", "test -d \"$AG_CONFIG_DIR\""],
+      "taskCommand": [
+        "python",
+        "-c",
+        "import json,sys; req=json.load(sys.stdin); print(json.dumps({'content': 'ok-from-acc02', 'account_id': req.get('account_id')}))"
+      ],
+      "maxConcurrency": 1
+    },
+    {
+      "id": "acc03",
+      "stateDir": "/tmp/agyc-orchestrator/accounts/acc03",
+      "env": {
+        "AG_CONFIG_DIR": "/tmp/agyc-orchestrator/accounts/acc03"
+      },
+      "startCommand": ["bash", "-lc", "sleep infinity"],
+      "healthCommand": ["bash", "-lc", "test -d \"$AG_CONFIG_DIR\""],
+      "taskCommand": [
+        "python",
+        "-c",
+        "import json,sys; req=json.load(sys.stdin); print(json.dumps({'content': 'ok-from-acc03', 'account_id': req.get('account_id')}))"
+      ],
+      "maxConcurrency": 3
+    }
+  ]
+}

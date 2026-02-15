@@ -33,3 +33,7 @@ tests/utils/*.jpeg
 # Build output
 dist/
 build/
+
+# Python bytecode
+__pycache__/
+*.pyc
