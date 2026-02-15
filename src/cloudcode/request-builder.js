@@ -13,6 +13,7 @@ import {
 } from '../constants.js';
 import { convertAnthropicToGoogle } from '../format/index.js';
 import { deriveSessionId } from './session-manager.js';
+import { generateRequestId, getRequestType } from '../utils/fingerprint.js';
 
 /**
  * Build the wrapped request body for Cloud Code API
@@ -50,8 +51,8 @@ export function buildCloudCodeRequest(anthropicRequest, projectId) {
         model: model,
         request: googleRequest,
         userAgent: 'antigravity',
-        requestType: 'agent',  // CLIProxyAPI v6.6.89 compatibility
-        requestId: 'agent-' + crypto.randomUUID()
+        requestType: getRequestType(),
+        requestId: generateRequestId()
     };
 
     // Inject systemInstruction with role: "user" at the top level (CLIProxyAPI v6.6.89 behavior)
