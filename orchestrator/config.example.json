@@ -13,9 +13,9 @@
   "accounts": [
     {
       "id": "acc01",
-      "stateDir": "/var/lib/ag/accounts/acc01",
+      "stateDir": "/tmp/agyc-orchestrator/accounts/acc01",
       "env": {
-        "AG_CONFIG_DIR": "/var/lib/ag/accounts/acc01"
+        "AG_CONFIG_DIR": "/tmp/agyc-orchestrator/accounts/acc01"
       },
       "startCommand": ["bash", "-lc", "sleep infinity"],
       "healthCommand": ["bash", "-lc", "test -d \"$AG_CONFIG_DIR\""],
@@ -28,9 +28,9 @@
     },
     {
       "id": "acc02",
-      "stateDir": "/var/lib/ag/accounts/acc02",
+      "stateDir": "/tmp/agyc-orchestrator/accounts/acc02",
       "env": {
-        "AG_CONFIG_DIR": "/var/lib/ag/accounts/acc02"
+        "AG_CONFIG_DIR": "/tmp/agyc-orchestrator/accounts/acc02"
       },
       "startCommand": ["bash", "-lc", "sleep infinity"],
       "healthCommand": ["bash", "-lc", "test -d \"$AG_CONFIG_DIR\""],
@@ -43,9 +43,9 @@
     },
     {
       "id": "acc03",
-      "stateDir": "/var/lib/ag/accounts/acc03",
+      "stateDir": "/tmp/agyc-orchestrator/accounts/acc03",
       "env": {
-        "AG_CONFIG_DIR": "/var/lib/ag/accounts/acc03"
+        "AG_CONFIG_DIR": "/tmp/agyc-orchestrator/accounts/acc03"
       },
       "startCommand": ["bash", "-lc", "sleep infinity"],
       "healthCommand": ["bash", "-lc", "test -d \"$AG_CONFIG_DIR\""],
@@ -58,4 +58,3 @@
     }
   ]
 }
-
