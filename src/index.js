@@ -21,6 +21,7 @@ const packageVersion = getPackageVersion();
 const args = process.argv.slice(2);
 const isDebug = args.includes('--debug') || args.includes('--dev-mode') || process.env.DEBUG === 'true' || process.env.DEV_MODE === 'true';
 const isFallbackEnabled = args.includes('--fallback') || process.env.FALLBACK === 'true';
+const isKeepaliveEnabled = args.includes('--keepalive') || process.env.KEEPALIVE === 'true';
 
 // Parse --strategy flag (format: --strategy=sticky or --strategy sticky)
 let strategyOverride = null;
@@ -48,6 +49,10 @@ if (isDebug) {
 
 if (isFallbackEnabled) {
     logger.info('Model fallback mode enabled');
+}
+
+if (isKeepaliveEnabled) {
+    logger.info('Session keepalive mode enabled');
 }
 
 // Export fallback flag for server to use
@@ -90,6 +95,9 @@ const server = app.listen(PORT, HOST, () => {
     if (!isFallbackEnabled) {
         controlSection += '║    --fallback         Enable model fallback on quota exhaust ║\n';
     }
+    if (!isKeepaliveEnabled) {
+        controlSection += '║    --keepalive        Enable session keepalive               ║\n';
+    }
     controlSection += '║    Ctrl+C             Stop server                            ║';
 
     // Get the strategy label (accountManager will be initialized by now)
@@ -104,6 +112,9 @@ const server = app.listen(PORT, HOST, () => {
     }
     if (isFallbackEnabled) {
         statusSection += '║    ✓ Model fallback enabled                                  ║\n';
+    }
+    if (isKeepaliveEnabled) {
+        statusSection += '║    ✓ Session keepalive enabled                                ║\n';
     }
     if (process.env.CLAUDE_CONFIG_PATH) {
         statusSection += `${border}    ${align4(`✓ Claude config: ${process.env.CLAUDE_CONFIG_PATH}`)}${border}\n`;
