@@ -53,6 +53,14 @@ const DEFAULT_CONFIG = {
     switchAccountDelayMs: 5000,    // Delay before switching accounts on rate limit
     capacityBackoffTiersMs: [5000, 10000, 20000, 30000, 60000], // Progressive backoff tiers for capacity exhaustion
     modelMapping: {},
+    // Session keepalive configuration
+    keepalive: {
+        enabled: false,               // Disabled by default; enable with --keepalive flag or config
+        intervalMs: 5 * 60 * 1000,    // 5 minutes between keepalive cycles
+        jitterMs: 60 * 1000,          // ±60 seconds randomization
+        maxConcurrent: 10,            // Max parallel account pings per cycle
+        maxConsecutiveFailures: 5     // Skip account after N consecutive failures
+    },
     // Account selection strategy configuration
     accountSelection: {
         strategy: 'hybrid',           // 'sticky' | 'round-robin' | 'hybrid'

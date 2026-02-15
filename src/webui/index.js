@@ -22,6 +22,7 @@ import { logger } from '../utils/logger.js';
 import { getAuthorizationUrl, completeOAuthFlow, startCallbackServer } from '../auth/oauth.js';
 import { loadAccounts, saveAccounts } from '../account-manager/storage.js';
 import { getPackageVersion } from '../utils/helpers.js';
+import { getKeepaliveStatus, startKeepalive, stopKeepalive, isKeepaliveRunning, getKeepaliveConfig, resetHealth } from '../modules/session-keepalive.js';
 
 // Get package version
 const packageVersion = getPackageVersion();
@@ -1132,6 +1133,98 @@ export function mountWebUI(app, dirname, accountManager) {
             });
         } catch (error) {
             logger.error('[WebUI] Error fetching strategy health:', error);
+            res.status(500).json({ status: 'error', error: error.message });
+        }
+    });
+
+    // ==========================================
+    // Keepalive API
+    // ==========================================
+
+    /**
+     * GET /api/keepalive/status - Get keepalive status and health
+     */
+    app.get('/api/keepalive/status', (req, res) => {
+        try {
+            const status = getKeepaliveStatus();
+            res.json({ status: 'ok', ...status });
+        } catch (error) {
+            logger.error('[WebUI] Error fetching keepalive status:', error);
+            res.status(500).json({ status: 'error', error: error.message });
+        }
+    });
+
+    /**
+     * POST /api/keepalive/toggle - Start or stop keepalive
+     * Body: { enabled: boolean }
+     */
+    app.post('/api/keepalive/toggle', (req, res) => {
+        try {
+            const { enabled } = req.body;
+            if (typeof enabled !== 'boolean') {
+                return res.status(400).json({ status: 'error', error: 'enabled must be a boolean' });
+            }
+
+            if (enabled && !isKeepaliveRunning()) {
+                config.keepalive = config.keepalive || {};
+                config.keepalive.enabled = true;
+                startKeepalive(accountManager);
+            } else if (!enabled && isKeepaliveRunning()) {
+                config.keepalive = config.keepalive || {};
+                config.keepalive.enabled = false;
+                stopKeepalive();
+            }
+
+            // Persist to config
+            saveConfig({ keepalive: config.keepalive });
+
+            res.json({ status: 'ok', running: isKeepaliveRunning() });
+        } catch (error) {
+            logger.error('[WebUI] Error toggling keepalive:', error);
+            res.status(500).json({ status: 'error', error: error.message });
+        }
+    });
+
+    /**
+     * POST /api/keepalive/config - Update keepalive configuration
+     * Body: { intervalMs?, jitterMs?, maxConcurrent?, maxConsecutiveFailures? }
+     */
+    app.post('/api/keepalive/config', (req, res) => {
+        try {
+            const { intervalMs, jitterMs, maxConcurrent, maxConsecutiveFailures } = req.body;
+            const updates = {};
+
+            // Validate ranges: intervalMs 1min-1hr, jitterMs 0-5min, maxConcurrent 1-50, maxConsecutiveFailures 1-20
+            if (typeof intervalMs === 'number' && intervalMs >= 60000 && intervalMs <= 3600000) {
+                updates.intervalMs = intervalMs;
+            }
+            if (typeof jitterMs === 'number' && jitterMs >= 0 && jitterMs <= 300000) {
+                updates.jitterMs = jitterMs;
+            }
+            if (typeof maxConcurrent === 'number' && maxConcurrent >= 1 && maxConcurrent <= 50) {
+                updates.maxConcurrent = maxConcurrent;
+            }
+            if (typeof maxConsecutiveFailures === 'number' && maxConsecutiveFailures >= 1 && maxConsecutiveFailures <= 20) {
+                updates.maxConsecutiveFailures = maxConsecutiveFailures;
+            }
+
+            if (Object.keys(updates).length === 0) {
+                return res.status(400).json({ status: 'error', error: 'No valid fields to update' });
+            }
+
+            const keepalive = { ...(config.keepalive || {}), ...updates };
+            config.keepalive = keepalive;
+            saveConfig({ keepalive });
+
+            // If keepalive is running, restart with new config
+            if (isKeepaliveRunning()) {
+                stopKeepalive();
+                startKeepalive(accountManager);
+            }
+
+            res.json({ status: 'ok', config: getKeepaliveConfig() });
+        } catch (error) {
+            logger.error('[WebUI] Error updating keepalive config:', error);
             res.status(500).json({ status: 'error', error: error.message });
         }
     });

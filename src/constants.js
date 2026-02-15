@@ -6,6 +6,7 @@
 import { homedir, platform, arch } from 'os';
 import { join } from 'path';
 import { config } from './config.js';
+import { generateUserAgent, getApiClientIdentifier } from './utils/fingerprint.js';
 
 /**
  * Get the Antigravity database path based on the current platform.
@@ -28,12 +29,13 @@ function getAntigravityDbPath() {
 
 /**
  * Generate platform-specific User-Agent string.
+ * Uses fingerprint randomization for varied but realistic version strings.
  * @returns {string} User-Agent in format "antigravity/version os/arch"
  */
 function getPlatformUserAgent() {
     const os = platform();
     const architecture = arch();
-    return `antigravity/1.16.5 ${os}/${architecture}`;
+    return generateUserAgent(os, architecture);
 }
 
 // IDE Type enum (numeric values as expected by Cloud Code API)
@@ -93,11 +95,26 @@ export const ANTIGRAVITY_ENDPOINT_FALLBACKS = [
 ];
 
 // Required headers for Antigravity API requests
+// Generated dynamically per-instance for fingerprint variation
+// Uses randomized User-Agent version and API client identifier
 export const ANTIGRAVITY_HEADERS = {
     'User-Agent': getPlatformUserAgent(),
-    'X-Goog-Api-Client': 'google-cloud-sdk vscode_cloudshelleditor/0.1',
+    'X-Goog-Api-Client': getApiClientIdentifier(),
     'Client-Metadata': JSON.stringify(CLIENT_METADATA)
 };
+
+/**
+ * Get fresh Antigravity API headers.
+ * Returns the same per-instance fingerprint headers (consistent within a session).
+ * @returns {Object} Headers object with User-Agent, X-Goog-Api-Client, Client-Metadata
+ */
+export function getAntigravityHeaders() {
+    return {
+        'User-Agent': getPlatformUserAgent(),
+        'X-Goog-Api-Client': getApiClientIdentifier(),
+        'Client-Metadata': JSON.stringify(CLIENT_METADATA)
+    };
+}
 
 // Endpoint order for loadCodeAssist (prod first)
 // loadCodeAssist works better on prod for fresh/unprovisioned accounts
@@ -469,6 +486,7 @@ export default {
     CLIENT_METADATA,
     ANTIGRAVITY_ENDPOINT_FALLBACKS,
     ANTIGRAVITY_HEADERS,
+    getAntigravityHeaders,
     LOAD_CODE_ASSIST_ENDPOINTS,
     ONBOARD_USER_ENDPOINTS,
     LOAD_CODE_ASSIST_HEADERS,

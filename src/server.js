@@ -21,10 +21,12 @@ import { clearThinkingSignatureCache } from './format/signature-cache.js';
 import { formatDuration } from './utils/helpers.js';
 import { logger } from './utils/logger.js';
 import usageStats from './modules/usage-stats.js';
+import { startKeepalive, stopKeepalive, getKeepaliveConfig } from './modules/session-keepalive.js';
 
 // Parse fallback flag directly from command line args to avoid circular dependency
 const args = process.argv.slice(2);
 const FALLBACK_ENABLED = args.includes('--fallback') || process.env.FALLBACK === 'true';
+const KEEPALIVE_ENABLED = args.includes('--keepalive') || process.env.KEEPALIVE === 'true';
 
 // Parse --strategy flag (format: --strategy=sticky or --strategy sticky)
 let STRATEGY_OVERRIDE = null;
@@ -64,6 +66,16 @@ async function ensureInitialized() {
             isInitialized = true;
             const status = accountManager.getStatus();
             logger.success(`[Server] Account pool initialized: ${status.summary}`);
+
+            // Auto-start keepalive if enabled via CLI flag, env var, or config
+            const kaCfg = getKeepaliveConfig();
+            if (KEEPALIVE_ENABLED || kaCfg.enabled) {
+                if (KEEPALIVE_ENABLED) {
+                    config.keepalive = config.keepalive || {};
+                    config.keepalive.enabled = true;
+                }
+                startKeepalive(accountManager);
+            }
         } catch (error) {
             initError = error;
             initPromise = null; // Allow retry on failure
