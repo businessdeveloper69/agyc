@@ -1194,6 +1194,7 @@ export function mountWebUI(app, dirname, accountManager) {
             const { intervalMs, jitterMs, maxConcurrent, maxConsecutiveFailures } = req.body;
             const updates = {};
 
+            // Validate ranges: intervalMs 1min-1hr, jitterMs 0-5min, maxConcurrent 1-50, maxConsecutiveFailures 1-20
             if (typeof intervalMs === 'number' && intervalMs >= 60000 && intervalMs <= 3600000) {
                 updates.intervalMs = intervalMs;
             }

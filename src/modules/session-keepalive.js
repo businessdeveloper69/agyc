@@ -19,7 +19,8 @@ import {
     ANTIGRAVITY_HEADERS,
     LOAD_CODE_ASSIST_ENDPOINTS,
     LOAD_CODE_ASSIST_HEADERS,
-    CLIENT_METADATA
+    CLIENT_METADATA,
+    DEFAULT_PROJECT_ID
 } from '../constants.js';
 import { logger } from '../utils/logger.js';
 import { sleep, throttledFetch } from '../utils/helpers.js';
@@ -87,7 +88,7 @@ async function actionLoadCodeAssist(token) {
                 body: JSON.stringify({
                     metadata: {
                         ...CLIENT_METADATA,
-                        duetProject: 'rising-fact-p41fc'
+                        duetProject: DEFAULT_PROJECT_ID
                     }
                 })
             });
