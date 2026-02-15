@@ -131,7 +131,10 @@ class Dispatcher:
                 # Prefer accounts with available capacity; if chosen is saturated, wait for capacity.
                 if acc.inflight >= acc.handle.max_concurrency:
                     self._capacity_event.clear()
-                    await asyncio.wait_for(self._capacity_event.wait(), timeout=1.0)
+                    try:
+                        await asyncio.wait_for(self._capacity_event.wait(), timeout=1.0)
+                    except asyncio.TimeoutError:
+                        pass
                     continue
 
                 try:
@@ -167,8 +170,8 @@ class Dispatcher:
                 acc.metrics.tasks_total += 1
                 acc.metrics.latency_ms_total += (time.time() - start) * 1000
                 acc.metrics.last_success_ts = time.time()
-                result.setdefault("metadata", {})
-                result["metadata"] = {**(result.get("metadata") or {}), "account_id": acc.handle.account_id}
+                metadata = result.get("metadata") or {}
+                result["metadata"] = {**metadata, "account_id": acc.handle.account_id}
                 if not item.future.done():
                     item.future.set_result(result)
             except Exception as e:

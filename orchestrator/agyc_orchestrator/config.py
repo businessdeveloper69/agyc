@@ -46,7 +46,7 @@ def _maybe_load_yaml(path: Path) -> Mapping[str, Any]:
     except Exception as e:  # pragma: no cover
         raise RuntimeError(
             "YAML config requested but PyYAML is not installed. "
-            "Install it (pip install pyyaml) or use JSON config."
+            "Install it (pip install PyYAML) or use JSON config."
         ) from e
     with path.open("r", encoding="utf-8") as f:
         return yaml.safe_load(f)
@@ -117,4 +117,3 @@ def load_config(path: str) -> OrchestratorConfig:
         raise ValueError("Config must contain at least one account")
 
     return OrchestratorConfig(server=server, dispatcher=dispatcher, accounts=accounts)
-

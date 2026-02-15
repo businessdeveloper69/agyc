@@ -72,8 +72,8 @@ PYTHONPATH=orchestrator python -m agyc_orchestrator.api --config orchestrator/co
 Request:
 
 ```bash
-curl -s http://127.0.0.1:8088/v1/messages \\
-  -H 'content-type: application/json' \\
+curl -s http://127.0.0.1:8088/v1/messages \
+  -H 'content-type: application/json' \
   -d '{
     "model": "claude-sonnet-4-5-thinking",
     "messages": [{"role": "user", "content": "Say hello"}],
